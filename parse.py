@@ -8,8 +8,8 @@ from aiocsv import AsyncWriter
 
 
 async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
-    cur_time = datetime.datetime.now().strftime('%d_%m_%Y_%H_%M')
-    
+    data = []
+
     for page in range(5):
         headers = {
             'User-Agent': UserAgent().random
@@ -21,7 +21,7 @@ async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
             soup = BS(await response.text(), 'lxml')
             
             offers = soup.find_all('div', class_='offer-wrapper')
-            data = []
+            
             for offer in offers:
                 name = offer.find('h3', class_='lheight22 margintop5').get_text(strip=True)
                 price = offer.find('p', class_='price').get_text(strip=True)
@@ -32,28 +32,18 @@ async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
                     [name, price, link]
                 )
         
-        async with aiofiles.open(f'{search_field}-{lowest_price}-{highest_price}.csv', 'a') as file:
-            writer = AsyncWriter(file)
-            
-            await writer.writerow(
-                [
-                    'Назва',
-                    'Ціна',
-                    'Посилання'
-                ]
-            )
-            await writer.writerows(
-                data
-            )
+    async with aiofiles.open(f'{search_field}-{lowest_price}-{highest_price}.csv', 'a') as file:
+        writer = AsyncWriter(file)
+        
+        await writer.writerow(
+            [
+                'Назва',
+                'Ціна',
+                'Посилання'
+            ]
+        )
+        await writer.writerows(
+            data
+        )
                 
     return f'{search_field}-{lowest_price}-{highest_price}.csv'
-
-
-
-
-async def main():
-    await parse_data(search_field="", lowest_price=0, highest_price=1000000)
-    
-    
-if __name__ == '__main__':
-    asyncio.run(main())

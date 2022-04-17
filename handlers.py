@@ -53,7 +53,9 @@ async def process_step3(message: types.Message, state: FSMContext):
             price = data["step2"].split("-")
             file = await parse_data(search_field=search_field, lowest_price=price[0], highest_price=price[1])
             await message.answer_document(document=open(file, 'rb'))
-            await os.remove(file)
+            os.remove(file)
+            data.state = None
+            await message.answer("Use /start comand to return using bot")
 
 
 def register_handlers_core(dp: Dispatcher):
