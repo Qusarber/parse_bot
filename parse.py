@@ -10,7 +10,7 @@ from aiocsv import AsyncWriter
 async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
     data = []
 
-    for page in range(5):
+    for page in range(10):
         headers = {
             'User-Agent': UserAgent().random
         }
@@ -26,11 +26,11 @@ async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
                 name = offer.find('h3', class_='lheight22 margintop5').get_text(strip=True)
                 price = offer.find('p', class_='price').get_text(strip=True)
                 link = offer.find('a', class_='marginright5').get('href')  
-                # print(name + ', ' + price)
-                # print(link)
-                data.append(
-                    [name, price, link]
-                )
+
+                if lowest_price <= price <= highest_price:
+                    data.append(
+                        [name, price, link]
+                    )
         
     async with aiofiles.open(f'{search_field}-{lowest_price}-{highest_price}.csv', 'a') as file:
         writer = AsyncWriter(file)

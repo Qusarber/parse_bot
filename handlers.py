@@ -12,6 +12,7 @@ class Parse(StatesGroup):
     step1 = State()
     step2 = State()
     step3 = State()
+    step4 = State()
 
 
 async def process_start_command(message: types.Message):
@@ -24,34 +25,42 @@ async def process_step1(message: types.Message, state: FSMContext):
         if message.text:
             data["step1"] = message.text
             await Parse.next()
-            await message.answer("Enter min and max price for search (as example 10000-20000)s")
+            await message.answer("Enter min filter price")
 
 
 async def process_step2(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        answer = message.text
         if (
-            len(answer.split("-")) == 2
-            and answer.replace("-", "").isdigit()
+            message.text.isdigit()
         ):
-            data["step2"] = answer
+            data["step2"] = message.text
+            await Parse.next()
+            await message.answer("Enter max filter price")
+        else:
+            await message.answer("Enter number!")
+
+
+async def process_step3(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        if (
+            message.text.isdigit()
+            and message.text > data["step2"]
+        ):
+            data["step3"] = message.text
             kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
             b1 = "Create CSV file"
             kb.add(b1)
             await Parse.next()
             await message.answer("Ready to create csv-file", reply_markup=kb)
         else:
-            await message.answer("Wrong text. Enter min and max price according to example")
+            await message.answer("Enter number! Max price also must be bigger than min price")
 
 
-async def process_step3(message: types.Message, state: FSMContext):
+async def process_step4(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         if message.text == "Create CSV file":
             await message.answer("Creating csv....")
-            print(data["step1"] + data["step2"])
-            search_field = data['step1']
-            price = data["step2"].split("-")
-            file = await parse_data(search_field=search_field, lowest_price=price[0], highest_price=price[1])
+            file = await parse_data(search_field=data['step1'], lowest_price=data["step2"], highest_price=data["step3"])
             await message.answer_document(document=open(file, 'rb'))
             os.remove(file)
             data.state = None
@@ -63,3 +72,4 @@ def register_handlers_core(dp: Dispatcher):
     dp.register_message_handler(process_step1, state=Parse.step1)
     dp.register_message_handler(process_step2, state=Parse.step2)
     dp.register_message_handler(process_step3, state=Parse.step3)
+    dp.register_message_handler(process_step4, state=Parse.step4)
