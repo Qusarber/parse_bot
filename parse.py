@@ -7,14 +7,14 @@ import asyncio
 from aiocsv import AsyncWriter
 
 
-async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
+async def parse_data(category="", search_field="", lowest_price=0, highest_price=10000000):
     data = []
 
     for page in range(10):
         headers = {
             'User-Agent': UserAgent().random
         }
-        url = f'https://www.olx.ua/elektronika/noutbuki-i-aksesuary/q-{search_field}/?search%5Bfilter_float_price%3Afrom%5D={lowest_price}&search%5Bfilter_float_price%3Ato%5D={highest_price}&page={page}'
+        url = f'https://www.olx.ua/d/{category}/q-{search_field}/?search%5Bfilter_float_price%3Afrom%5D={lowest_price}&search%5Bfilter_float_price%3Ato%5D={highest_price}&page={page}'
         async with aiohttp.ClientSession() as session:
             
             response = await session.get(url=url, headers=headers)
@@ -32,7 +32,7 @@ async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
                         [name, price, link]
                     )
         
-    async with aiofiles.open(f'{search_field}-{lowest_price}-{highest_price}.csv', 'a') as file:
+    async with aiofiles.open(f'{search_field}-{category}.csv', 'a') as file:
         writer = AsyncWriter(file)
         
         await writer.writerow(
@@ -46,4 +46,4 @@ async def parse_data(search_field="", lowest_price=0, highest_price=1000000):
             data
         )
                 
-    return f'{search_field}-{lowest_price}-{highest_price}.csv'
+    return f'{search_field}-{category}.csv'
