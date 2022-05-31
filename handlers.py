@@ -10,7 +10,6 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
 )
 
-
 class Parse(StatesGroup):
     step1 = State()
     step2 = State()
