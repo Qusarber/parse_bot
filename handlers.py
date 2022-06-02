@@ -64,8 +64,7 @@ async def process_step4(message: types.Message, state: FSMContext):
         try:
             data['step4'] = CATEGORY_CHOISE_DICT.get(f"{message.text}")
             kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-            b1 = "Create CSV file"
-            kb.add(b1)
+            kb.add("Create CSV file")
             await Parse.next()
             await message.answer("Ready to create csv-file", reply_markup=kb)
         except:
